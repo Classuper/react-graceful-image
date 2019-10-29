@@ -9,9 +9,15 @@ function registerListener(event, fn) {
   }
 }
 
+function isClient() {
+  return typeof window !== 'undefined' && window.document;
+}
+
 function isInViewport(el) {
   if (!el) return false;
+
   const rect = el.getBoundingClientRect();
+
   return (
     rect.top >= 0 &&
     rect.left >= 0 &&
@@ -28,10 +34,13 @@ const fadeIn = `
   }
 `;
 
-const IS_SVG_SUPPORTED = document.implementation.hasFeature(
-  "http://www.w3.org/TR/SVG11/feature#Image",
-  "1.1"
-);
+const IS_SSR = !isClient();
+const IS_SVG_SUPPORTED = IS_SSR
+  ? false
+  : document.implementation.hasFeature(
+    "http://www.w3.org/TR/SVG11/feature#Image",
+    "1.1"
+  );
 
 class GracefulImage extends Component {
   constructor(props) {
@@ -70,6 +79,8 @@ class GracefulImage extends Component {
     Creating a stylesheet to hold the fading animation
   */
   addAnimationStyles() {
+    if (IS_SSR) return;
+
     const exists = document.head.querySelectorAll("[data-gracefulimage]");
 
     if (!exists.length) {
